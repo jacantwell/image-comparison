@@ -39,10 +39,8 @@ if settings.CORS_ORGINS:
         allow_headers=["*"],
     )
 
-
-@app.get("/ping")
-def ping():
-    return "pong"
-
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 app.include_router(comparisons_router)
