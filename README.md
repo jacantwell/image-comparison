@@ -1,31 +1,82 @@
-# Image Comparison
+# Image Comparison MVP
 
-## Usage
+A full-stack web application for detecting and visualising differences between images.
 
-This application can be ran loaclly using Docker.
+## Quick Start
 
-Ensure your Docker Daemon is running and simply run:
+Ensure Docker is running, then:
 
 ```bash
 docker compose up
 ```
 
-The app will now be availble at `http://localhost:3000/`
+Access the application at `http://localhost:3000`
 
-## Assumptions
+## Features
 
-I made a couple of deviations from the spec to ensure the backend application follows RestAPI best practices. This includes plurasing the endpoint resources and only returning an ID from the POST endpoint.
+### Core Functionality
+- **Dual Comparison Methods**: Pixel-by-pixel and structural similarity (SSIM) algorithms
+- **Multiple Visualisations**: Heatmap and contour-based difference highlighting
+- **Adjustable Sensitivity**: Fine-tune detection threshold from 0-100%
+- **Comparison History**: Access previous analyses via persistent storage
 
-This implementation assumes that usage will be via local deployment on users device as the local database only has a single "table" that lists all comparisons that have been created on that server instance. Stopping the server deletes all data.
+### Technical Implementation
+- **Backend**: FastAPI with OpenCV and scikit-image for image processing
+- **Frontend**: Next.js with React for responsive UI
+- **Architecture**: RESTful API with in-memory database for rapid prototyping
 
-I designed the library functions under the assumption that there may be different comparison of visualisation implementatison added in the furture.
+## Architecture Decisions
 
-## Improvements
+## Project Structure
 
-A cool feature would be semantic comparison using an llm agent, it could take input images and generated visualisations to create a text description of what has changed e.g "User has close a tab"
+```
+.
+├── backend/
+│   ├── app/
+│   │   ├── api/          # FastAPI routes and dependencies
+│   │   ├── config/       # Settings and logging
+│   │   ├── database/     # In-memory storage implementation
+│   │   ├── lib/          # Core comparison and visualisation logic
+│   │   └── models/       # Pydantic schemas and enums
+│   └── Dockerfile
+├── frontend/
+│   ├── app/              # Next.js pages
+│   ├── components/       # React components with shadcn/ui
+│   └── Dockerfile
+└── docker-compose.yml
+```
 
-Currently the visualisation parameters are just set internally, exposing these via the api would give the user greater control on what the output image looked like.
+### API Design
+I deviated from the specification to follow REST best practices:
+- Pluralised endpoint resources (`/comparisons` instead of `/comparison`)
+- POST endpoint returns only the comparison ID (not the full result)
+- Separate GET endpoint retrieves complete results with visualisations
 
-## Challenges
+### Deployment Model
+The application assumes local deployment with single-instance usage. The in-memory database resets on restart, making it suitable for development and demonstration purposes rather than production environments.
 
-Typically I use pydantic models for FastAPI Request and Reponse bodies however I struggled to using them with encoded images within. Instead I opted for the UploadFile type as shown in the FastAPI docs for request bodies. For response, because I wanted to return the score and the image i had to use base64 encoding rather than just a fastAPI Response with the content defined as a png image.
+### Library Structure
+The comparison and visualisation modules are designed with extensibility in mind, allowing future implementations to be added without modifying existing code.
+
+## Future Improvements
+
+### Semantic Analysis
+Integrate an LLM agent to generate natural language descriptions of visual changes (e.g., "User closed a browser tab" or "Button color changed from blue to red").
+
+### Enhanced Configurability
+Expose visualisation parameters through the API, giving users programmatic control over:
+- Color schemes and opacity levels
+- Contour detection thresholds
+- Heatmap intensity ranges
+
+### Performance Optimization
+- Implement background job processing for large image comparisons
+- Add caching layer for frequently accessed results
+- Persistent database storage
+
+## Technical Challenges
+
+### Request/Response Handling
+Typically I use Pydantic models for FastAPI request and response bodies, however they don't natively support binary image data due to serialisation limitations. Instead I opted for the `UploadFile` type as shown in the FastAPI docs for request bodies. For responses, because I wanted to return both the score and the image, I had to use base64 encoding rather than just a FastAPI Response with the content defined as a PNG image.
+
+
