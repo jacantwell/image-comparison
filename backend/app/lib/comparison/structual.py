@@ -69,7 +69,7 @@ class SSIMComparer(BaseComparer):
             img2_gray: Second grayscale image.
 
         Returns:
-            Tuple of (ssim_score, difference_map).
+            Tuple of (difference_score, difference_map).
         """
         try:
             # Compute SSIM with full difference map
@@ -77,7 +77,9 @@ class SSIMComparer(BaseComparer):
 
             logger.debug(f"SSIM score: {score:.4f}")
 
-            return score, diff_map
+            difference_score = (1 - score) * 100
+
+            return difference_score, diff_map
 
         except Exception as e:
             logger.error(f"SSIM computation failed: {e}")
@@ -162,7 +164,7 @@ class SSIMComparer(BaseComparer):
                 )
 
             # Compute SSIM score and difference map
-            ssim_score, raw_diff_map = self._compute_ssim(img1_gray, img2_gray)
+            difference_score, raw_diff_map = self._compute_ssim(img1_gray, img2_gray)
 
             # Process difference map for visualization
             diff_map = self._process_difference_map(raw_diff_map)
@@ -170,8 +172,7 @@ class SSIMComparer(BaseComparer):
             # Apply sensitivity threshold (optional, for binary mask)
             _ = self._apply_sensitivity_threshold(diff_map)
 
-            # Convert SSIM score to percentage (0-100)
-            return ComparisonResult(score=ssim_score * 100, map=diff_map)
+            return ComparisonResult(score=difference_score, map=diff_map)
 
         except SSIMComparisonError:
             raise
